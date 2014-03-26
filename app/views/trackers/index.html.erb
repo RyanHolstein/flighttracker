@@ -1,6 +1,9 @@
 <html>
   <head>
 
+<div id='top'>
+</div>
+<div style="height: 500px;" id='background'>
 
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
@@ -178,16 +181,31 @@ $(document).ready(function() {
   <body>
 
     <form onsubmit="return false;">
-      <p>Enter a flight ident to track: 
+
+      <div id='search'>
+      <p>
+        <h1>Enter a flight ident to track</h1>
          <input type="text" name="ident" id="ident_text" value=" " />
     
         <button type="submit" id= "go_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Go</button>
       </p>
+    </div>
+<!--       <p1>From
+        <input type="text" name="origin" id="origin_text" value=" " />
+        <button type="submit" id= "go_button">Go</button>
+      </p1>
+      <p2>To
+        <input type="text" name="origin" id="origin_text" value=" " />
+        <button type="submit" id= "go_button">Go</button>
+      </p2>
+ -->
+
     </form>
 
     <div id="results"></div>
     <div id="map_div" style="width: 400px; height: 300px"></div>
-
+ 
+</div>
   </body>
 </html>
 
