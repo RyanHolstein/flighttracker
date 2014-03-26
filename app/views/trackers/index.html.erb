@@ -12,6 +12,9 @@ var flightOrigin;
 var flightDestination;
 var airport;
 var identAir;
+var aircraft;
+var originCity;
+var destinationCity;
 
 google.load("visualization", "1", {packages:["map"]});
 
@@ -31,7 +34,8 @@ $(document).ready(function() {
           flightDestination = flight.destination;
           airport = flight.Taf;
           identAir = flight.faFlightID;
-          $('#results').html('Flight ' + flight.ident + ' from ' + flightOrigin + ' to ' + flightDestination + ' Altitude: ' + flight.altitude + ' Groundspeed ' + flight.groundspeed + ' Depature Time' + flight.departureTime + ' Arrival Time' + flight.arrivalTime);
+          
+          $('#results').html('Flight ' + flight.ident + ' from ' + flightOrigin + ' to ' + flightDestination + ' Altitude: ' + flight.altitude + ' Groundspeed ' + flight.groundspeed);//+ ' Depature Time' + flight.departureTime + ' Arrival Time' + flight.arrivalTime );
 
           // display the route on a map.
           fetchAndRenderRoute(flight.faFlightID);
@@ -77,6 +81,8 @@ $(document).ready(function() {
 
                addMetar();
                addTaf();
+               addEnroute();
+               // addFlightInfo();
 
 
 
@@ -135,6 +141,35 @@ $(document).ready(function() {
 
        });
     }
+
+
+      function addEnroute(){
+
+      $.ajax({
+       type: 'GET',
+       url: fxml_url + 'Enroute', 
+       data: { 'airport': flightOrigin, 'howMany': 1, 'filter': 'airline', 'offset': 0,  }, 
+        success : function(result) { 
+        console.log(result.EnrouteResult.enroute);
+        for (rowid = 0; rowid < result.EnrouteResult.length; rowid++) {
+        c = result.EnrouteResult[rowid]
+        console.log(c.originCity, c.destionationCity)
+       // console.log(c.flightOrigin)
+       $('#flightdetails').append($("<tr><td>" + c.originCity + "</td><td>" + c.destinationCity + "</td></tr>"));
+     }
+
+       },   
+
+    error: function(data, text) { alert('Failed to fetch flight: ' + data); },
+       dataType: 'jsonp',
+       jsonp: 'jsonp_callback',
+       xhrFields: { withCredentials: true }
+
+       });
+    }
+
+
+
 
 
 </script>

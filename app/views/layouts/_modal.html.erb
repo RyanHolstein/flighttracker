@@ -5,7 +5,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="myModalLabel">Your flight info for<script> $('#results').html('Flight ' + flight.ident + ' from ' + flightOrigin + ' to ' + flightDestination);</script></h4>
+        <h4 class="modal-title" id="myModalLabel">Your flight info for <div id="results"></div></h4>
       </div>
       <div class="modal-body">
  		<html>
@@ -27,6 +27,11 @@
         <tr>
           <th>Tail Number</th>
           <th>Meal Service</th>
+        </tr>
+      <table class="table" id="flightdetails">
+        <tr>
+          <th>Origin</th>
+          <th>Destination</th>
         </tr>
     </table>
 
