@@ -2,256 +2,256 @@
 
 <head>
 
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 
 </head>
 
 <body>
 
-<script type="text/javascript">
-var fxml_url = 'http://magichat101:e8ae49cf66e3943186a43b67d60f60d314476df5@flightxml.flightaware.com/json/FlightXML2/';
+  <script type="text/javascript">
+    var fxml_url = 'http://magichat101:e8ae49cf66e3943186a43b67d60f60d314476df5@flightxml.flightaware.com/json/FlightXML2/';
 
 
     var flightOrigin;
-      var flightDestination;
-      var airport;
-      var identAir;
-      var aircraft;
-      var originCity;
-      var destinationCity;
+    var flightDestination;
+    var airport;
+    var identAir;
+    var aircraft;
+    var originCity;
+    var destinationCity;
 
 
-      google.load("visualization", "1", {
-        packages: ["map"]
+    google.load("visualization", "1", {
+      packages: ["map"]
+    });
+
+
+     // When the button is clicked, fetch the details about the entered flight ident.
+    $(function () {
+      $('#go_button').click(function () {
+        $.ajax({
+          type: 'GET',
+          url: fxml_url + 'InFlightInfo',
+
+          data: {
+            'ident': $('#ident_text').val()
+          },
+          success: function (result) {
+
+            // display some textual details about the flight.
+            var flight = result.InFlightInfoResult;
+            flightOrigin = flight.origin;
+            flightDestination = flight.destination;
+            airport = flight.Taf;
+            identAir = flight.faFlightID;
+
+            $('#results').html('Flight ' + flight.ident + ' from ' + flightOrigin + ' to ' + flightDestination + ' Altitude: ' + flight.altitude + ' Groundspeed ' + flight.groundspeed); //+ ' Depature Time' + flight.departureTime + ' Arrival Time' + flight.arrivalTime );
+
+            // display the route on a map.
+            fetchAndRenderRoute(flight.faFlightID);
+          },
+
+          error: function (data, text) {
+            alert('Failed to fetch flight: ' + data);
+          },
+          dataType: 'jsonp',
+          jsonp: 'jsonp_callback',
+          xhrFields: {
+            withCredentials: true
+          }
+        });
       });
 
 
-       // When the button is clicked, fetch the details about the entered flight ident.
-      $(function () {
-        $('#go_button').click(function () {
-          $.ajax({
-            type: 'GET',
-            url: fxml_url + 'InFlightInfo',
 
-            data: {
-              'ident': $('#ident_text').val()
-            },
-            success: function (result) {
+      $('#search_button').click(function () {
+        $.ajax({
+          type: 'GET',
+          url: fxml_url + 'Search',
+          data: {
+            'query': "-origin " + $('#origin_text').val() + " -destination " + $('#destination_text').val(),
+            'howMany': 10,
+            'offset': 0
+          },
+          success: function (result) {
 
-              // display some textual details about the flight.
-              var flight = result.InFlightInfoResult;
-              flightOrigin = flight.origin;
-              flightDestination = flight.destination;
-              airport = flight.Taf;
-              identAir = flight.faFlightID;
-
-              $('#results').html('Flight ' + flight.ident + ' from ' + flightOrigin + ' to ' + flightDestination + ' Altitude: ' + flight.altitude + ' Groundspeed ' + flight.groundspeed); //+ ' Depature Time' + flight.departureTime + ' Arrival Time' + flight.arrivalTime );
-
-              // display the route on a map.
-              fetchAndRenderRoute(flight.faFlightID);
-            },
-
-            error: function (data, text) {
-              alert('Failed to fetch flight: ' + data);
-            },
-            dataType: 'jsonp',
-            jsonp: 'jsonp_callback',
-            xhrFields: {
-              withCredentials: true
-            }
-          });
-        });
-
-
-        
-        $('#search_button').click(function () {
-          $.ajax({
-            type: 'GET',
-            url: fxml_url + 'Search',
-            data: {
-              'query': "-origin " + $('#origin_text').val() + " -destination " + $('#destination_text').val(),
-              'howMany': 10,
-              'offset': 0
-            },
-            success: function (result) {
-              
-              console.log(result.SearchResult.aircraft[0]);
-              for (i = 0; i < result.SearchResult.aircraft.length; i++) {
+            console.log(result.SearchResult.aircraft[0]);
+            for (i = 0; i < result.SearchResult.aircraft.length; i++) {
               s = result.SearchResult.aircraft[i]
               // console.log(s.ident, s.destination)
               // $('#search').append($("<tr><td>" + s.ident + "</td><td>" + s.destination + "</td></tr>"));
-                  $('#search').append($("<tr><td>" + s.ident.link() + "</td></tr>"));
+              $('#search').append($("<tr><td>" + s.ident.link() + "</td></tr>"));
 
 
-              }
-
-            },
-
-            error: function (data, text) {
-              alert('Failed to fetch flight: ' + data);
-            },
-            dataType: 'jsonp',
-            jsonp: 'jsonp_callback',
-            xhrFields: {
-              withCredentials: true
             }
 
+          },
+
+          error: function (data, text) {
+            alert('Failed to fetch flight: ' + data);
+          },
+          dataType: 'jsonp',
+          jsonp: 'jsonp_callback',
+          xhrFields: {
+            withCredentials: true
+          }
+
+        });
+
+      });
+
+
+    });
+
+     // Fetch the planned route for a specified flight_id.
+    function fetchAndRenderRoute(flight_id) {
+      $.ajax({
+        type: 'GET',
+        url: fxml_url + 'DecodeFlightRoute',
+        data: {
+          'faFlightID': flight_id
+        },
+        success: function (result) {
+          // Initialize a data table using the Google API.
+          var table = new google.visualization.DataTable();
+          table.addColumn('number', 'Lat');
+          table.addColumn('number', 'Lon');
+          table.addColumn('string', 'Name');
+
+          // Insert all of the points into the data table.
+          console.log(result);
+          var points = result.DecodeFlightRouteResult.data;
+          table.addRows(points.length);
+          for (rowid = 0; rowid < points.length; rowid++) {
+            table.setCell(rowid, 0, points[rowid].latitude);
+            table.setCell(rowid, 1, points[rowid].longitude);
+            table.setCell(rowid, 2, points[rowid].name + ' (' + points[rowid].type + ')');
+          }
+
+          // Render the data table into a map using Google Maps API.
+          var map = new google.visualization.Map(document.getElementById('map_div'));
+          map.draw(table, {
+            showTip: true,
+            showLine: true,
+            lineWidth: 3,
+            lineColor: '#009900'
           });
 
-        });
-
-
-      }); 
-
-  // Fetch the planned route for a specified flight_id.
-       function fetchAndRenderRoute(flight_id) {
-        $.ajax({
-          type: 'GET',
-          url: fxml_url + 'DecodeFlightRoute',
-          data: {
-            'faFlightID': flight_id
-          },
-          success: function (result) {
-            // Initialize a data table using the Google API.
-            var table = new google.visualization.DataTable();
-            table.addColumn('number', 'Lat');
-            table.addColumn('number', 'Lon');
-            table.addColumn('string', 'Name');
-
-            // Insert all of the points into the data table.
-            console.log(result);
-            var points = result.DecodeFlightRouteResult.data;
-            table.addRows(points.length);
-            for (rowid = 0; rowid < points.length; rowid++) {
-              table.setCell(rowid, 0, points[rowid].latitude);
-              table.setCell(rowid, 1, points[rowid].longitude);
-              table.setCell(rowid, 2, points[rowid].name + ' (' + points[rowid].type + ')');
-            }
-
-            // Render the data table into a map using Google Maps API.
-            var map = new google.visualization.Map(document.getElementById('map_div'));
-            map.draw(table, {
-              showTip: true,
-              showLine: true,
-              lineWidth: 3,
-              lineColor: '#009900'
-            });
-
-            addMetar();
-            addTaf();
-            addSearch();
-            // addFlightInfo();
+          addMetar();
+          addTaf();
+          addSearch();
+          // addFlightInfo();
 
 
 
-          },
-          error: function (data, text) {
-            alert('Failed to decode route: ' + data);
-          },
-          dataType: 'jsonp',
-          jsonp: 'jsonp_callback',
-          xhrFields: {
-            withCredentials: true
-          }
-        });
-      }
+        },
+        error: function (data, text) {
+          alert('Failed to decode route: ' + data);
+        },
+        dataType: 'jsonp',
+        jsonp: 'jsonp_callback',
+        xhrFields: {
+          withCredentials: true
+        }
+      });
+    }
 
 
-      function addMetar() {
-        $.ajax({
-          type: 'GET',
-          url: fxml_url + 'MetarEx',
-          data: {
-            'airport': flightOrigin,
-            'howMany': 1,
-            'offset': 0,
-            'startTime': (new Date()).getTime()
-          },
-          success: function (result) {
-            console.log(result.MetarExResult.metar);
-            for (rowid = 0; rowid < result.MetarExResult.metar.length; rowid++) {
-              m = result.MetarExResult.metar[rowid]
-              console.log(m.cloud_type, m.cloud_altitude)
-              $('#clouds').append($("<tr><td>" + m.cloud_type + "</td><td>" + m.cloud_altitude + "</td></tr>"));
-            }
-
-          },
-
-          error: function (data, text) {
-            alert('Failed to fetch flight: ' + data);
-          },
-          dataType: 'jsonp',
-          jsonp: 'jsonp_callback',
-          xhrFields: {
-            withCredentials: true
-          }
-        });
-      }
-
-
-      function addTaf() {
-
-        $.ajax({
-          type: 'GET',
-          url: fxml_url + 'AirlineFlightInfo',
-          data: {
-            'faFlightID': identAir
-          },
-          success: function (result) {
-            console.log(result.AirlineFlightInfoResult);
-            b = result.AirlineFlightInfoResult
-            //          console.log(b.meal_service)
-            $('#info').append($("<tr><td>" + b.tailnumber + "</td><td>" + b.meal_service + "</td></tr>"));
-
-          },
-
-          error: function (data, text) {
-            alert('Failed to fetch flight: ' + data);
-          },
-          dataType: 'jsonp',
-          jsonp: 'jsonp_callback',
-          xhrFields: {
-            withCredentials: true
+    function addMetar() {
+      $.ajax({
+        type: 'GET',
+        url: fxml_url + 'MetarEx',
+        data: {
+          'airport': flightOrigin,
+          'howMany': 1,
+          'offset': 0,
+          'startTime': (new Date()).getTime()
+        },
+        success: function (result) {
+          console.log(result.MetarExResult.metar);
+          for (rowid = 0; rowid < result.MetarExResult.metar.length; rowid++) {
+            m = result.MetarExResult.metar[rowid]
+            console.log(m.cloud_type, m.cloud_altitude)
+            $('#clouds').append($("<tr><td>" + m.cloud_type + "</td><td>" + m.cloud_altitude + "</td></tr>"));
           }
 
-        });
-      }
-    </script>
+        },
+
+        error: function (data, text) {
+          alert('Failed to fetch flight: ' + data);
+        },
+        dataType: 'jsonp',
+        jsonp: 'jsonp_callback',
+        xhrFields: {
+          withCredentials: true
+        }
+      });
+    }
+
+
+    function addTaf() {
+
+      $.ajax({
+        type: 'GET',
+        url: fxml_url + 'AirlineFlightInfo',
+        data: {
+          'faFlightID': identAir
+        },
+        success: function (result) {
+          console.log(result.AirlineFlightInfoResult);
+          b = result.AirlineFlightInfoResult
+          //          console.log(b.meal_service)
+          $('#info').append($("<tr><td>" + b.tailnumber + "</td><td>" + b.meal_service + "</td></tr>"));
+
+        },
+
+        error: function (data, text) {
+          alert('Failed to fetch flight: ' + data);
+        },
+        dataType: 'jsonp',
+        jsonp: 'jsonp_callback',
+        xhrFields: {
+          withCredentials: true
+        }
+
+      });
+    }
+  </script>
 
   <form onsubmit="return false;">
 
-   <div id='top'> 
-    <%=image_tag("departure.jpg", class: "background", alt: "departure") %>
-    
+    <div id='top'>
+      <%=image_tag( "departure.jpg", class: "background", alt: "departure") %>
 
 
-   </div>
 
-   <div id='bottom'>
-    <%=image_tag("787night.jpg", class: "background2", alt: "787") %>
-    
-    <div id='submitfield'>
+    </div>
 
-    <p id='identflight1'>
-      <h1>Enter a flight ident to track</h1>
-      <input type="text" name="ident" id="ident_text" value=" " />
+    <div id='bottom'>
+      <%=image_tag( "787night.jpg", class: "background2", alt: "787") %>
 
-      <button type="submit" id="go_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Go</button>
-    </p>
+        <div id='submitfield'>
 
-    <p id='originid1'><span id='from'>From</span>
-      <input type="text" name="origin" id="origin_text" value=" " />
-    </p>
+          <p id='identflight1'>
+            <h1>Enter a flight ident to track</h1>
+            <input type="text" name="ident" id="ident_text" value=" " />
 
-    <p id='destinationid1'><span id='to'>To</span>
-      <input type="text" name="origin" id="destination_text" value=" " />
-      <!--   <button id= "go_button">Go</button>
+            <button type="submit" id="go_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Go</button>
+          </p>
+
+          <p id='originid1'><span id='from'>From</span>
+            <input type="text" name="origin" id="origin_text" value=" " />
+          </p>
+
+          <p id='destinationid1'><span id='to'>To</span>
+            <input type="text" name="origin" id="destination_text" value=" " />
+            <!--   <button id= "go_button">Go</button>
         <button id= "go_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Go</button> -->
 
-      <button type="submit" id="search_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">search</button>
-    </p>
-  </div>
+            <button type="submit" id="search_button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">search</button>
+          </p>
+        </div>
 
 
   </form>
