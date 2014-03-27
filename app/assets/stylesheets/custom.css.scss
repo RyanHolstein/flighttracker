@@ -1,33 +1,44 @@
 @import 'bootstrap';
 
-p {
+#identflight1 {
 	margin-left: 500px;
-	margin-top: 300px;
+	margin-top: -200px;
+	
 }
+
+
 
 #ident_text {
 	border-radius: 5px;
 	color: black;
+	margin-left:400px;
 }
 
 h1 {
 	font-size: 18px;
 	color:white;
-}
-
-#search {
-	margin-left: 450px;
-}
-
-html {
-	background-image:url('departure.jpg')
-
-}
-
-#background {
-	background-image:url('787night.jpg')	
+	margin-left:400px;
 }
 
 
 
 
+body {
+	height:700px;
+}
+
+.background {
+	width: 100%;
+	height:350px;
+}
+
+.background2 {
+	width: 100%;
+	height:350px;
+	
+}
+
+
+#bottom {
+	height:300px;
+}
